@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 // need intents to create a client
 const client = new Discord.Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
 
-const prefix = '!';
+const prefix = '!'; // right meow, all messages starting with ! will be read.
 
 const fs = require('fs');
 
