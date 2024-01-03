@@ -1,4 +1,4 @@
-# PaqBot
+# AyyyyyyBot
 A discord bot based in JavaScript and Node.js
 [https://www.codecademy.com/courses/learn-intermediate-javascript/articles/implementing-modules-in-node]
 
