@@ -1,23 +1,26 @@
 {
-  "name": "paqbot",
+  "name": "getting-started",
   "version": "1.0.0",
-
-  "description": "a discord bot for poli :)",
-  "main": "main.js",
+  "description": "Discord example app",
+  "main": "app.js",
+  "type": "module",
+  "engines": {
+    "node": "16.x"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "register": "node commands.js",
+    "dev": "nodemon app.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/aolsen07/PaqBot.git"
-  },
-  "author": "Alexander Olsen",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/aolsen07/PaqBot/issues"
-  },
-  "homepage": "https://github.com/aolsen07/PaqBot#readme",
+  "author": "Shay DeWael",
+  "license": "MIT",
   "dependencies": {
-    "discord.js": "^13.6.0"
+    "discord-interactions": "^3.2.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
   }
 }
