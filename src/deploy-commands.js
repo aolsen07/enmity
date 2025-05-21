@@ -8,6 +8,7 @@ const commands = [];
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
+// deploy commands to API
 for (const folder of commandFolders) {
     const commandsPath = path.join(foldersPath, folder);
     const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -19,7 +20,8 @@ for (const folder of commandFolders) {
         // check to ensure properties are defined in export
         if ('data' in command && 'execute' in command) {
             commands.push(command.data.toJSON()); // !!
-        } else {
+        }
+        else {
             console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
         }
     }
@@ -38,7 +40,8 @@ const rest = new REST().setToken(process.env.BOT_TOKEN);
         );
 
         console.log(`Reloaded ${data.length} commands!`);
-    } catch (error) {
+    }
+    catch (error) {
         console.error(error);
     }
 })();
