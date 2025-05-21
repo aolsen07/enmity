@@ -4,8 +4,8 @@
   "description": "discord bot for myself",
   "main": "src/index.js",
   "scripts": {
-    "commands deploy": "node src/scripts/deploy-commands.js",
-    "commands delete": "node src/scripts/delete-commands.js",
+    "deploy-commands": "node src/scripts/deploy-commands.js",
+    "delete-command": "node src/scripts/delete-commands.js",
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

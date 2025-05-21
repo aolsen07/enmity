@@ -10,10 +10,10 @@
 Commands are built using the `SlashCommandBuilder` interface.
 
 ## Scripts
-- `npm run-script commands delete <command-id>` 
+- `npm run-script delete-command <command-id>` 
   Provide a command ID for a slash command to remove it from Discord's API.
 
-- `npm run-script commands deploy` 
+- `npm run-script deploy-commands` 
   Run the `deploy-commands.js` script, which builds and adds all commands in the `commands` directory to the API. This should be done before running the bot. 
 
 - `npm start`
