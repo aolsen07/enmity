@@ -1,10 +1,19 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Presence } = require('discord.js');
 require('dotenv').config(); // .env file accessed with process.env
 
 // new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds], // only subscribe to guild events
+    presence: {
+        activities: [{
+            name: 'League of Legends',
+            type: Presence.ActivityType.Playing,
+        }],
+        status: 'online',
+    },
+});
 
 client.commands = new Collection(); // extended map
 client.cooldowns = new Collection();
