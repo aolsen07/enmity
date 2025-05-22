@@ -66,6 +66,9 @@ for (const folder of commandFolders) {
         );
 
         console.log(`SUCCESS - Reloaded ${data.length} commands!`);
+        data.forEach(command => {
+            console.log(`\t${command.name} - ${command.description}`);
+        });
 
         console.log(`\nRefreshing ${privateCommands.length} private slash commands...\n`);
         const privateData = await rest.put(
