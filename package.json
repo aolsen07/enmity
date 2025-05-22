@@ -6,12 +6,14 @@
   "scripts": {
     "deploy-commands": "node src/scripts/deploy-commands.js",
     "delete-command": "node src/scripts/delete-commands.js",
+    "view-commands": "node src/scripts/view-commands.js",
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Alexander Olsen",
   "license": "ISC",
   "dependencies": {
+    "chalk": "^5.4.1",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5"
   },
