@@ -1,0 +1,5 @@
+The scripts in this folder are automated to call on the Discord REST application
+
+Review the endpoints here, and you can typically find the corresponding Route in DiscordJS
+
+https://discord.com/developers/docs/interactions/application-commands#get-global-application-commands
