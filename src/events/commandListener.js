@@ -3,11 +3,12 @@ const { Events } = require('discord.js');
 
 // processes and executes Chat Input Commands
 module.exports = {
-	name: Events.InteractionCreate,
+	trigger: Events.InteractionCreate,
 	async execute(interaction) {
 
 		if (!interaction.isChatInputCommand()) return;
 
+		console.log(`[INFO]: Command triggered: ${interaction.commandName}, User: ${interaction.user.tag}, Channel: ${interaction.channel.name}`);
 		const command = interaction.client.commands.get(interaction.commandName);
 
 		// check if this is a found command for the system
@@ -34,7 +35,7 @@ module.exports = {
 			const expireTime = timestamps.get(interaction.user.id) + cooldownAmount;
 			if (now < expireTime) {
 				const expiredTimestamp = Math.round(expireTime / 1_000);
-				return interaction.reply({ content: `Please wait, you are still on cooldown until \`${expiredTimestamp}\``});
+				return interaction.reply({ content: `Please wait, you are still on cooldown until \`${expiredTimestamp}\`` });
 			}
 			return interaction.reply('Still on cooldown!');
 		}
@@ -49,7 +50,8 @@ module.exports = {
 			console.error(error);
 			if (interaction.replied || interaction.deferred) {
 				await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-			} else {
+			}
+			else {
 				await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 			}
 		}

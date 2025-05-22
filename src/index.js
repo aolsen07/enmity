@@ -10,12 +10,13 @@ client.commands = new Collection(); // extended map
 client.cooldowns = new Collection();
 
 // load commands
+console.log('Reviewing commands...\n');
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
 for (const folder of commandFolders) {
     const commandsPath = path.join(foldersPath, folder);
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync(commandsPath, { recursive: true }).filter(file => file.endsWith('.js'));
 
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
@@ -35,6 +36,7 @@ for (const folder of commandFolders) {
 
 // should files be labeled as command- and event-?
 // load event listener files
+console.log('Tuning into event listeners...\n');
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
@@ -44,11 +46,11 @@ for (const file of eventFiles) {
 
     // does the event only need to be trigger once?
 	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
+		client.once(event.trigger, (...args) => event.execute(...args));
 	}
     else {
         // adds to an array of listeners for the specified event
-		client.on(event.name, (...args) => event.execute(...args));
+		client.on(event.trigger, (...args) => event.execute(...args));
 	}
 }
 
