@@ -9,7 +9,7 @@ const client = new Client({
     presence: {
         activities: [{
             name: 'League of Legends',
-            type: Presence.ActivityType.Playing,
+            type: 0,
         }],
         status: 'online',
     },

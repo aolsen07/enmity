@@ -6,6 +6,23 @@ module.exports = {
 	trigger: Events.InteractionCreate,
 	async execute(interaction) {
 
+		if (interaction.isAutocomplete()) {
+
+			const command = interaction.client.commands.get(interaction.commandName);
+
+			if (!command?.autocomplete) {
+				console.error(`No autocomplete function found for command: ${interaction.commandName}`);
+				return;
+			}
+
+			try {
+				await command.autocomplete(interaction);
+			}
+			catch (error) {
+				console.error(error);
+			}
+		}
+
 		if (!interaction.isChatInputCommand()) return;
 
 		console.log(`[INFO]: Command triggered: ${interaction.commandName}, User: ${interaction.user.tag}, Channel: ${interaction.channel.name}`);
@@ -44,6 +61,7 @@ module.exports = {
 		setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
 
 		try {
+			// TODO: structure for subcommands?
 			await command.execute(interaction);
 		}
 		catch (error) {
