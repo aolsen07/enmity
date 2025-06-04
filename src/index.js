@@ -5,7 +5,7 @@ require('dotenv').config(); // .env file accessed with process.env
 
 // new client instance
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds], // only subscribe to guild events
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages],
     presence: {
         activities: [{
             name: 'League of Legends',
