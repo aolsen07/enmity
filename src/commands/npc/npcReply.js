@@ -64,7 +64,7 @@ module.exports = {
 
         console.log(`Validated inputs: Webhook ID: ${npcId}, Message ID: ${messageId}, DM Channel: ${dmChannel.id}`);
 
-        // create a container builder 
+        // create a container builder
         const messages = [];
         const container = new ContainerBuilder({
             components: [
