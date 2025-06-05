@@ -1,4 +1,4 @@
-const { chalk } = require('chalk');
+const chalk = require('chalk');
 console.log(chalk.blue('Initializing AyyyyyyBot...'));
 
 const fs = require('node:fs');
@@ -24,13 +24,8 @@ client.cooldowns = new Collection();
 console.log(chalk.green('Client initialized.\n'));
 
 const mongoose = require('mongoose');
-try {
-    mongoose.connect(process.env.MONGO_URI);
-    console.log(chalk.green('Database connected.'));
-}
-catch (err) {
-    console.error('Error connecting to MongoDB:', err);
-}
+mongoose.connect(process.env.MONGO_URI)
+    .catch(err => console.error(chalk.red('Database connection error:', err)));
 
 // load commands
 console.log('Reviewing commands...\n');
@@ -77,6 +72,9 @@ for (const file of eventFiles) {
 	}
 }
 
-console.log(chalk.green('Done.\n'));
+mongoose.connection.on('error', err => console.error(chalk.red('Database connection error:', err)));
+mongoose.connection.on('disconnected', () => console.log(chalk.yellow('Database disconnected.')));
+mongoose.connection.on('connected', () => console.log(chalk.green('Database connected.')));
+
 // login using token
 client.login(process.env.BOT_TOKEN);
