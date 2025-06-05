@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags, ContainerBuilder, ComponentType } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags, ContainerBuilder, ComponentType, TextDisplayBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -15,6 +15,8 @@ module.exports = {
                 .setRequired(false)),
 
     async execute(interaction) {
+
+        const client = interaction.client;
         const npcId = interaction.options.getString('npcname');
         const messageId = interaction.options.getString('messagelink');
         const base_channel = interaction.channel;
@@ -22,10 +24,11 @@ module.exports = {
         // validate inputs
         let webhook;
         try {
+
             // Fetch the webhooks for the channel
-            const webhooks = await base_channel.fetchWebhooks();
+            webhook = await client.fetchWebhook(npcId);
             // Find the webhook with the matching name
-            webhook = webhooks.find(wh => wh.id === npcId);
+
             if (!webhook) {
                 console.error(`No webhook found for NPC: ${npcId}`);
                 await interaction.reply({ content: `No webhook found for NPC: ${npcId}`, flags: MessageFlags.Ephemeral });
@@ -33,7 +36,7 @@ module.exports = {
             }
         }
         catch (err) {
-            console.error('Error fetching webhooks:', err);
+            console.error('Error fetching webhook:', err);
             await interaction.reply({ content: 'Error fetching webhooks. Please try again later.', flags: MessageFlags.Ephemeral });
             return;
         }
@@ -103,9 +106,9 @@ module.exports = {
         await interaction.reply({ content: `Check your DMs to reply as ${webhook.name}!`, flags: MessageFlags.Ephemeral });
 
         // set up collectors for messages and button interactions
-        const messageFilter = m => !m.content.startsWith('cancel') || !m.content.startsWith('finish');
+        // const messageFilter = m => !m.content.startsWith('cancel') || !m.content.startsWith('finish');
         const messageCollector = dmChannel.createMessageCollector({
-            filter: messageFilter,
+            // filter: messageFilter,
             idle: 120_000, // 2 minute idle time
             time: 300_000, // 5 minutes total time
         });
@@ -117,16 +120,26 @@ module.exports = {
         });
 
         messageCollector.on('collect', async (message) => {
-            messages.push(message.content);
-            container.addTextDisplayComponents({
+            let newComponent = {
                 content: `${message.content}`,
                 type: ComponentType.TextDisplay,
-            });
+            };
+            messages.push(message.content);
+
+            container.spliceComponents(
+                container.components.length - 1,
+                {
+                    content: `${message.content}`,
+                    type: ComponentType.TextDisplay,
+                },
+            );
+
             await containerMsg.edit({ components: [container], flags: MessageFlags.IsComponentsV2 });
 
             console.log(`Collected message: ${message.content}`);
         });
 
+        /*
         messageCollector.on('dispose', (message) => {
             if (message.content.toLowerCase().startsWith('cancel') || message.content.toLowerCase().startsWith('finish')) {
                 messageCollector.stop('cancelled');
@@ -136,6 +149,7 @@ module.exports = {
             console.error('Message was disposed');
             return;
         });
+        */
 
         messageCollector.on('end', async (collected) => {
             await dmChannel.send(`Message collection ended. Collected ${collected.size} messages`);
@@ -152,7 +166,7 @@ module.exports = {
                         flags: MessageFlags.SuppressEmbeds,
                     });
                     messageCollector.stop('finished');
-                    await buttonInteraction.reply({ content: 'Reply sent successfully!', flags: MessageFlags.Ephemeral });
+                    await buttonInteraction.reply({ content: 'Reply sent successfully!' });
                 }
                 catch (err) {
                     console.error('Error sending webhook message:', err);
@@ -160,7 +174,7 @@ module.exports = {
                 }
             }
             else if (buttonInteraction.customId === 'cancel') {
-                await buttonInteraction.reply({ content: 'Reply cancelled.', flags: MessageFlags.Ephemeral });
+                await buttonInteraction.reply({ content: 'Reply cancelled.' });
                 messageCollector.stop('cancelled');
             }
         });
