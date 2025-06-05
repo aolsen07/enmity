@@ -106,9 +106,9 @@ module.exports = {
         await interaction.reply({ content: `Check your DMs to reply as ${webhook.name}!`, flags: MessageFlags.Ephemeral });
 
         // set up collectors for messages and button interactions
-        // const messageFilter = m => !m.content.startsWith('cancel') || !m.content.startsWith('finish');
+        const messageFilter = m => m.author.id === interaction.user.id;
         const messageCollector = dmChannel.createMessageCollector({
-            // filter: messageFilter,
+            filter: messageFilter,
             idle: 120_000, // 2 minute idle time
             time: 300_000, // 5 minutes total time
         });
