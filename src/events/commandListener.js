@@ -52,7 +52,13 @@ module.exports = {
 			const expireTime = timestamps.get(interaction.user.id) + cooldownAmount;
 			if (now < expireTime) {
 				const expiredTimestamp = Math.round(expireTime / 1_000);
-				return interaction.reply({ content: `Please wait, you are still on cooldown until \`${expiredTimestamp}\`` });
+
+				if (command?.reason) {
+					return interaction.reply({ content: command.reason, flags: MessageFlags.Ephemeral });
+				}
+				else {
+					return interaction.reply({ content: `Please wait, you are still on cooldown until \`${expiredTimestamp}\``, flags: MessageFlags.Ephemeral });
+				}
 			}
 			return interaction.reply('Still on cooldown!');
 		}
