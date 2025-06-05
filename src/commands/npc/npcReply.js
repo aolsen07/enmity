@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, MessageFlags, ContainerBuilder, ComponentType, TextDisplayBuilder } = require('discord.js');
 
 module.exports = {
+    cooldown: 300,
+    reason: 'Please finish your current reply before starting a new one.',
     data: new SlashCommandBuilder()
         .setName('npcreply')
         .setDescription('Reply as an NPC that you created')
