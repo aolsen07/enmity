@@ -16,6 +16,7 @@ module.exports = {
             interaction.channel.createWebhook({
                 name: npcName,
                 avatar: npcImage,
+                reason: `Created by ${interaction.user.tag}`,
             })
                 .then(webhook => {
                     console.log(`Created webhook ${webhook.id} with name ${webhook.name}`);
