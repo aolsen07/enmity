@@ -1,16 +1,14 @@
 // using modals and webhooks to create a new NPC for discord messaging
-const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 
 module.exports = {
     cooldown: 5,
     data: new SlashCommandBuilder()
         .setName('createnpc')
-        .setDescription('Creates a new NPC for the server'),
+        .setDescription('Launches a modal to create a new NPC')
+        .setDefaultMemberPermissions(PermissionsBitField.ManageWebhooks), // requires Manage Webhooks permission
 
     async execute(interaction) {
-        // TODO configure required role
-
-        // TODO create a modal to get the NPC name and description
         const modal = new ModalBuilder()
             .setCustomId('createNpcModal')
             .setTitle('Create a new NPC');
