@@ -1,7 +1,11 @@
+const chalk = require('chalk');
+console.log(chalk.blue('Initializing AyyyyyyBot...'));
+
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 require('dotenv').config(); // .env file accessed with process.env
+
 
 // new client instance
 const client = new Client({
@@ -17,6 +21,11 @@ const client = new Client({
 
 client.commands = new Collection(); // extended map
 client.cooldowns = new Collection();
+console.log(chalk.green('Client initialized.\n'));
+
+const mongoose = require('mongoose');
+mongoose.connect(process.env.MONGO_URI)
+    .catch(err => console.error(chalk.red('Database connection error:', err)));
 
 // load commands
 console.log('Reviewing commands...\n');
@@ -38,14 +47,14 @@ for (const folder of commandFolders) {
             client.commands.set(command.data.name, command);
         }
         else {
-            console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+            console.log(chalk.yellow('[WARNING]'), `The command at ${filePath} is missing a required "data" or "execute" property.`);
         }
     }
 }
 
 // should files be labeled as command- and event-?
 // load event listener files
-console.log('Tuning into event listeners...\n');
+console.log('Tuning into event listeners...');
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
@@ -62,6 +71,10 @@ for (const file of eventFiles) {
 		client.on(event.trigger, (...args) => event.execute(...args));
 	}
 }
+
+mongoose.connection.on('error', err => console.error(chalk.red('Database connection error:', err)));
+mongoose.connection.on('disconnected', () => console.log(chalk.yellow('Database disconnected.')));
+mongoose.connection.on('connected', () => console.log(chalk.green('Database connected.')));
 
 // login using token
 client.login(process.env.BOT_TOKEN);

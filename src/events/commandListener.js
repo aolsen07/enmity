@@ -1,5 +1,5 @@
 const { Collection } = require('@discordjs/collection');
-const { Events } = require('discord.js');
+const { Events, MessageFlags } = require('discord.js');
 
 // processes and executes Chat Input Commands
 module.exports = {
@@ -52,7 +52,13 @@ module.exports = {
 			const expireTime = timestamps.get(interaction.user.id) + cooldownAmount;
 			if (now < expireTime) {
 				const expiredTimestamp = Math.round(expireTime / 1_000);
-				return interaction.reply({ content: `Please wait, you are still on cooldown until \`${expiredTimestamp}\`` });
+
+				if (command?.reason) {
+					return interaction.reply({ content: command.reason, flags: MessageFlags.Ephemeral });
+				}
+				else {
+					return interaction.reply({ content: `Please wait, you are still on cooldown until \`${expiredTimestamp}\``, flags: MessageFlags.Ephemeral });
+				}
 			}
 			return interaction.reply('Still on cooldown!');
 		}
@@ -67,10 +73,10 @@ module.exports = {
 		catch (error) {
 			console.error(error);
 			if (interaction.replied || interaction.deferred) {
-				await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+				await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 			}
 			else {
-				await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+				await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 			}
 		}
 	},
