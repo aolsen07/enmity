@@ -24,5 +24,11 @@ module.exports = {
                 })
                 .catch(console.error);
         }
+        else if (interaction.customId.startsWith('npcEdit')) {
+            await interaction.reply({
+                content: 'Received Edit',
+                flags: MessageFlags.Ephemeral,
+            });
+        }
     },
 };
