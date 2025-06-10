@@ -19,13 +19,13 @@ module.exports = {
         delete require.cache[require.resolve(`./${command.data.name}.js`)];
 
         try {
-            interaction.client.commands.delete(command.data.name);
             const newCmd = require(`./${command.data.name}.js`);
             interaction.client.commands.set(newCmd.data.name, newCmd);
             await interaction.reply(`Command \`${newCmd.data.name}\` was reloaded.`);
-        } catch (error) {
+        }
+        catch (error) {
             console.error(error);
-            await interaction.reply(`Error while reloading command \`${newCmd.data.name}\`.\n\`${error.message}\``);
+            await interaction.reply(`Error while reloading command \`${command.data.name}\`.\n\`${error.message}\``);
         }
     },
 };
