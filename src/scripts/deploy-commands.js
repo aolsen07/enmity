@@ -60,25 +60,32 @@ for (const folder of commandFolders) {
     try {
         console.log(`\nRefreshing ${commands.length} global slash commands...\n`);
 
-        const data = await rest.put(
+        await rest.put(
             Routes.applicationCommands(process.env.CLIENT_ID),
             { body: commands },
-        );
-
-        console.log(`SUCCESS - Reloaded ${data.length} commands!`);
-        data.forEach(command => {
-            console.log(`\t${command.name} - ${command.description}`);
+        )
+        .then((data) => {
+            console.log(`SUCCESS - Reloaded ${data.length} commands!`);
+            data.forEach(command => {
+                console.log(`\t${command.name} - ${command.description}`);
+            });
         });
 
         console.log(`\nRefreshing ${privateCommands.length} private slash commands...\n`);
-        const privateData = await rest.put(
+        await rest.put(
             Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.TEST_GUILD_ID),
             { body: privateCommands },
-        );
+        )
+        .then((privateData) =>
+            console.log(`SUCCESS - Reloaded ${privateData.length} private commands!`),
+        )
+        .catch(err => {
+            console.log('An error occurred!!!', err);
+        });
 
-        console.log(`SUCCESS - Reloaded ${privateData.length} private commands!`);
     }
     catch (error) {
+        console.log('An error occurred');
         console.error(error);
     }
 })();
