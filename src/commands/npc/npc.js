@@ -77,20 +77,27 @@ module.exports = {
         const subcommand = interaction.options.getSubcommand();
 
         // switch on the subcommand
-        if (interaction.options.getSubcommand() === 'reply') {
+        if (subcommand === 'reply') {
             // Handle the reply subcommand
-            await npcReply(interaction);
+            await npcReply(interaction)
+                .catch(err => {
+                    console.error('Couldn\'t reply,', err.message);
+                });
         }
         else if (subcommand === 'create') {
             // Handle the create subcommand
             const modal = await buildNPCModal();
-            await interaction.showModal(modal);
+            await interaction.showModal(modal)
+                .catch(err =>
+                    console.error('Couldn\'t launch creation modal,', err.message),
+                );
         }
         else if (subcommand === 'edit') {
             const npcId = interaction.options.getString('npcname');
-            const webhook = await interaction.client.fetchWebhook(npcId);
-            const modal = await buildNPCModal(webhook);
-            await interaction.showModal(modal);
+            await interaction.client.fetchWebhook(npcId)
+                .then(webhook => buildNPCModal(webhook))
+                .then(modal => interaction.showModal(modal))
+                .catch(err => interaction.reply(`Couldn't launch edit modal, ${err.message}`));
         }
         else if (subcommand === 'delete') {
             // Handle the delete subcommand
@@ -98,11 +105,13 @@ module.exports = {
             await interaction.client.fetchWebhook(npcId)
                 .then(webhook => webhook.delete())
                 .then(() => {
-                    interaction.reply({ content: `NPC with ID ${npcId} has been deleted.`, MessageFlags: MessageFlags.Ephemeral });
+                    interaction.reply({ content: `NPC with ID ${npcId} has been deleted.`, flags: MessageFlags.Ephemeral });
                 })
                 .catch(error => {
                     console.error('Error deleting NPC:', error);
-                    interaction.reply({ content: 'There was an error deleting the NPC.', MessageFlags: MessageFlags.Ephemeral });
+                    if (error.code === 50_035) {
+                        interaction.reply({ content: 'The NPC you want to delete doesn\'t exist, if that helps...\n*Check your input and ensure you\'re selecting the right option', flags: MessageFlags.Ephemeral });
+                    }
                 });
         }
     },
