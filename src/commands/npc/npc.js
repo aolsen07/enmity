@@ -211,9 +211,33 @@ async function npcReply(interaction) {
 
     const npcId = interaction.options.getString('npcname');
     const messageId = interaction.options.getString('messagelink');
-    const base_channel = interaction.channel;
 
-    const [webhook, dmChannel, targetMessage] = await validateInputs(interaction, npcId, messageId, base_channel);
+    // Fetch the webhook for the channel, handle bad ID. Could sanitize for bad ID before to save on the API call
+    const webhook = await interaction.client.fetchWebhook(npcId)
+        .catch(err => {
+            interaction.reply({ content: `No webhook found for \`${npcId}\`. Make sure the webhook still exists and use the autocomplete result.`, flags: MessageFlags.Ephemeral });
+            throw new Error(`Error Occurred in fetching webhook: ${err.message}`);
+        });
+
+
+    // Try to DM the user
+    const dmChannel = await interaction.user.createDM()
+        .catch(err => {
+            interaction.reply({ content: 'Could not send you a DM! Please check your server privacy settings to allow Direct Messages.', flags: MessageFlags.Ephemeral });
+            throw new Error(`Could not create DM channel: ${err.message}`);
+        });
+
+    // If a message ID is provided, fetch the message to reply to
+    let targetMessage;
+    if (messageId) {
+        // Fetch the message to reply to
+        targetMessage = await interaction.channel.messages.fetch(messageId)
+        .catch(err => {
+            interaction.reply({ content: 'Had trouble with the message id, please double check!', flags: MessageFlags.Ephemeral });
+            throw new Error(`Error replying to message ${messageId}: ${err.message}`);
+        });
+    }
+
 
     const prompt = new TextDisplayBuilder()
         .setContent(
@@ -357,6 +381,7 @@ async function handleMessageCollectorClose(collected, reason, dmChannel) {
 
 /**
  * Validates the inputs for the NPC reply command before sending the container. If there is an error, it replies to the interaction with an error message in the channel the command was made in.
+ * @async
  * @param {Interaction} interaction - the interaction object from discord.js
  * @param {Snowflake} npcId - the ID of the NPC webhook to reply as
  * @param {Snowflake} [messageId] - the ID of the message to reply to, if specified
@@ -366,51 +391,5 @@ async function validateInputs(interaction, npcId, messageId) {
 
     const client = interaction.client;
     const base_channel = interaction.channel;
-
-    // validate inputs
-    let webhook;
-    try {
-
-        // Fetch the webhooks for the channel
-        webhook = await client.fetchWebhook(npcId);
-        // Find the webhook with the matching name
-
-        if (!webhook) {
-            console.error(`No webhook found for NPC: ${npcId}`);
-            await interaction.reply({ content: `No webhook found for with an ID of ${npcId}. Make sure the webhook still exists and use the autocomplete result.`, flags: MessageFlags.Ephemeral });
-            return;
-        }
-    }
-    catch (err) {
-        console.error('Error fetching webhook:', err);
-        await interaction.reply({ content: 'Error fetching webhooks. Please try again later.', flags: MessageFlags.Ephemeral });
-        return;
-    }
-
-    // Try to DM the user
-    let dmChannel;
-    try {
-        dmChannel = await interaction.user.createDM();
-    }
-    catch (err) {
-        console.error('Could not create DM channel:', err);
-        await interaction.reply({ content: 'Could not send you a DM! Please check your server privacy settings to allow Direct Messages.', flags: MessageFlags.Ephemeral });
-        return;
-    }
-
-    // If a message ID is provided, fetch the message to reply to
-    let targetMessage;
-    if (messageId) {
-        try {
-            // Fetch the message to reply to
-            targetMessage = await base_channel.messages.fetch(messageId);
-        }
-        catch (err) {
-            console.error('Error fetching message:', err);
-            await interaction.reply({ content: 'Could not find the message you want reply to. Please double check the message ID.', flags: MessageFlags.Ephemeral });
-            return;
-        }
-    }
-
     return [ webhook, dmChannel, targetMessage ];
 }
