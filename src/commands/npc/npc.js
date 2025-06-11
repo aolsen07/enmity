@@ -52,12 +52,7 @@ module.exports = {
                     option.setName('npcname')
                         .setDescription('Enter the name of the NPC you want to reply as')
                         .setRequired(true)
-                        .setAutocomplete(true))
-                .addStringOption(option =>
-                    option.setName('messagelink')
-                        .setDescription('Paste the id of a message here to reply to it')
-                        .setRequired(false),
-                    ),
+                        .setAutocomplete(true)),
         ),
 
         // // View
@@ -190,7 +185,6 @@ const { ContainerBuilder, TextDisplayBuilder, ButtonBuilder, ComponentType } = r
 async function npcReply(interaction) {
 
     const npcId = interaction.options.getString('npcname');
-    const messageId = interaction.options.getString('messagelink');
 
     // Fetch the webhook for the channel, handle bad ID. Could sanitize for bad ID before to save on the API call
     const webhook = await interaction.client.fetchWebhook(npcId)
@@ -199,7 +193,6 @@ async function npcReply(interaction) {
             throw new Error(`Error Occurred in fetching webhook: ${err.message}`);
         });
 
-
     // Try to DM the user
     const dmChannel = await interaction.user.createDM()
         .catch(err => {
@@ -207,18 +200,7 @@ async function npcReply(interaction) {
             throw new Error(`Could not create DM channel: ${err.message}`);
         });
 
-    // If a message ID is provided, fetch the message to reply to
-    let targetMessage;
-    if (messageId) {
-        // Fetch the message to reply to
-        targetMessage = await interaction.channel.messages.fetch(messageId)
-        .catch(err => {
-            interaction.reply({ content: 'Had trouble with the message id, please double check!', flags: MessageFlags.Ephemeral });
-            throw new Error(`Error replying to message ${messageId}: ${err.message}`);
-        });
-    }
-
-    const [container, finishButton, cancelButton] = buildReplyMessageContainer(webhook.name, targetMessage);
+    const [container, finishButton, cancelButton] = buildReplyMessageContainer(webhook.name);
 
     // send the initial container
     const containerMsg = await dmChannel.send({ components: [container], flags: MessageFlags.IsComponentsV2 })
@@ -250,7 +232,7 @@ async function npcReply(interaction) {
     });
 
     buttonCollector.on('collect', async (buttonInteraction) => {
-        await handleButtonInteraction(buttonInteraction, webhook, messageCollector);
+        await handleButtonInteraction(buttonInteraction, webhook);
     });
 
     // notify the user that the collection has ended
@@ -261,7 +243,6 @@ async function npcReply(interaction) {
         console.log(`Button collector ended for reason: ${reason}`);
         finishButton.setDisabled(true);
         cancelButton.setDisabled(true);
-        // row.setComponents(finishButton, cancelButton);
         await containerMsg.edit({ components: [container], flags: MessageFlags.IsComponentsV2 });
     });
 
@@ -290,6 +271,7 @@ async function handleButtonInteraction(buttonInteraction, webhook) {
             return;
         }
 
+        messages.push(`> -# Message sent by <@${buttonInteraction.user.id}>`);
         await webhook.send({
             content: messages.join('\n'),
             allowedMentions: { parse: [] }, // prevent mentions
