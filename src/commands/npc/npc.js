@@ -116,26 +116,6 @@ module.exports = {
         }
     },
     async autocomplete(interaction) {
-
-        // note: the number of choices is limited to 25
-        // const focusedValue = await interaction.options.getFocused()
-        // // this returns a collection (extension of Map)
-        // .then(() => {
-        //     const webhookMap = interaction.channel.fetchWebhooks()
-        //     .catch(err => {
-        //         console.error('Error fetching webhooks:', err);
-        //         return [];
-        //     });
-        // })
-        // .then()
-
-        // const filtered = npcNames.filter(choice => choice.startsWith(focusedValue));
-        // await interaction.respond(
-        //     webhookMap.map(wh => ({ name: wh.name, value: wh.id })),
-        // );
-
-        // v2
-
         // get webhooks from channel interaction
         await interaction.channel.fetchWebhooks()
         .then(webhooks => {
