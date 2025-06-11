@@ -25,7 +25,7 @@ module.exports = {
                 .setName('edit')
                 .setDescription('Edit an existing NPC\'s name and image')
                 .addStringOption(option =>
-                    option.setName('npc_id')
+                    option.setName('npcname')
                         .setDescription('The name of the NPC you want to edit')
                         .setRequired(true)
                         .setAutocomplete(true),
@@ -87,14 +87,14 @@ module.exports = {
             await interaction.showModal(modal);
         }
         else if (subcommand === 'edit') {
-            const npcId = interaction.options.getString('npc_id');
+            const npcId = interaction.options.getString('npcname');
             const webhook = await interaction.client.fetchWebhook(npcId);
             const modal = await buildNPCModal(webhook);
             await interaction.showModal(modal);
         }
         else if (subcommand === 'delete') {
             // Handle the delete subcommand
-            const npcId = interaction.options.getString('npc_id');
+            const npcId = interaction.options.getString('npcname');
             await interaction.client.fetchWebhook(npcId)
                 .then(webhook => webhook.delete())
                 .then(() => {
@@ -109,18 +109,35 @@ module.exports = {
     async autocomplete(interaction) {
 
         // note: the number of choices is limited to 25
-        const focusedValue = await interaction.options.getFocused();
-        // this returns a collection (extension of Map)
-        const webhookMap = await interaction.channel.fetchWebhooks()
-            .catch(err => {
-                console.error('Error fetching webhooks:', err);
-                return [];
-            });
+        // const focusedValue = await interaction.options.getFocused()
+        // // this returns a collection (extension of Map)
+        // .then(() => {
+        //     const webhookMap = interaction.channel.fetchWebhooks()
+        //     .catch(err => {
+        //         console.error('Error fetching webhooks:', err);
+        //         return [];
+        //     });
+        // })
+        // .then()
 
         // const filtered = npcNames.filter(choice => choice.startsWith(focusedValue));
-        await interaction.respond(
-            webhookMap.map(wh => ({ name: wh.name, value: wh.id })),
-        );
+        // await interaction.respond(
+        //     webhookMap.map(wh => ({ name: wh.name, value: wh.id })),
+        // );
+
+        // v2
+
+        // get webhooks from channel interaction
+        await interaction.channel.fetchWebhooks()
+        .then(webhooks => {
+            const focusedValue = interaction.options.getFocused();
+
+            // webhooks is a collection of snowflake -> webhook
+            const filtered = webhooks.filter(webhook => webhook.name.toLowerCase().startsWith(focusedValue.toLowerCase()));
+            interaction.respond(
+                filtered.map(webhook => ({ name: webhook.name, value: webhook.id })),
+            );
+        });
     },
 };
 
@@ -265,6 +282,7 @@ async function npcReply(interaction) {
 
 // npc reply helper functions
 async function pushNewMessage(message, container, containerMsg) {
+    console.log(`Collected message: ${message.content}`);
     const newComponent = {
         content: `${message.content}`,
         type: ComponentType.TextDisplay,
@@ -275,8 +293,6 @@ async function pushNewMessage(message, container, containerMsg) {
     messages.push(message.content);
 
     await containerMsg.edit({ components: [container], flags: MessageFlags.IsComponentsV2 });
-
-    console.log(`Collected message: ${message.content}`);
 }
 
 async function handleButtonInteraction(buttonInteraction, webhook) {
@@ -287,20 +303,20 @@ async function handleButtonInteraction(buttonInteraction, webhook) {
             return;
         }
 
-        try {
-            await webhook.send({
-                content: messages.join('\n'),
-                allowedMentions: { parse: [] }, // prevent mentions
-                flags: MessageFlags.SuppressEmbeds,
-            });
-            await buttonInteraction.reply({ content: 'Reply sent successfully!' });
+        await webhook.send({
+            content: messages.join('\n'),
+            allowedMentions: { parse: [] }, // prevent mentions
+            flags: MessageFlags.SuppressEmbeds,
+        })
+        .then(() => {
+            buttonInteraction.reply({ content: 'Reply sent successfully!' });
             messageCollector.stop(FINISH_PRESSED);
             buttonCollector.stop(FINISH_PRESSED);
-        }
-        catch (err) {
+        })
+        .catch(err => {
             console.error('Error sending webhook message:', err);
-            await buttonInteraction.reply({ content: 'An error occurred, failed to send reply.', flags: MessageFlags.Ephemeral });
-        }
+            buttonInteraction.reply({ content: 'An error occurred, failed to send reply.', flags: MessageFlags.Ephemeral });
+        });
     }
     else if (buttonInteraction.customId === 'cancel') {
         await buttonInteraction.reply({ content: 'Reply cancelled.' });
