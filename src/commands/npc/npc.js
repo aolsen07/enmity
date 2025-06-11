@@ -265,6 +265,7 @@ async function npcReply(interaction) {
 
 // npc reply helper functions
 async function pushNewMessage(message, container, containerMsg) {
+    console.log(`Collected message: ${message.content}`);
     const newComponent = {
         content: `${message.content}`,
         type: ComponentType.TextDisplay,
@@ -275,8 +276,6 @@ async function pushNewMessage(message, container, containerMsg) {
     messages.push(message.content);
 
     await containerMsg.edit({ components: [container], flags: MessageFlags.IsComponentsV2 });
-
-    console.log(`Collected message: ${message.content}`);
 }
 
 async function handleButtonInteraction(buttonInteraction, webhook) {
@@ -287,20 +286,20 @@ async function handleButtonInteraction(buttonInteraction, webhook) {
             return;
         }
 
-        try {
-            await webhook.send({
-                content: messages.join('\n'),
-                allowedMentions: { parse: [] }, // prevent mentions
-                flags: MessageFlags.SuppressEmbeds,
-            });
-            await buttonInteraction.reply({ content: 'Reply sent successfully!' });
+        await webhook.send({
+            content: messages.join('\n'),
+            allowedMentions: { parse: [] }, // prevent mentions
+            flags: MessageFlags.SuppressEmbeds,
+        })
+        .then(() => {
+            buttonInteraction.reply({ content: 'Reply sent successfully!' });
             messageCollector.stop(FINISH_PRESSED);
             buttonCollector.stop(FINISH_PRESSED);
-        }
-        catch (err) {
+        })
+        .catch(err => {
             console.error('Error sending webhook message:', err);
-            await buttonInteraction.reply({ content: 'An error occurred, failed to send reply.', flags: MessageFlags.Ephemeral });
-        }
+            buttonInteraction.reply({ content: 'An error occurred, failed to send reply.', flags: MessageFlags.Ephemeral });
+        });
     }
     else if (buttonInteraction.customId === 'cancel') {
         await buttonInteraction.reply({ content: 'Reply cancelled.' });
