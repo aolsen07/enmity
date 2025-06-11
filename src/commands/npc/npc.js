@@ -218,33 +218,7 @@ async function npcReply(interaction) {
         });
     }
 
-
-    const prompt = new TextDisplayBuilder()
-        .setContent(
-            targetMessage ? `## ${webhook.name} will reply...` : `## ${webhook.name} will send...`,
-        );
-
-    const instructions = new TextDisplayBuilder()
-        .setContent('-# Type messages in this channel to add to the reply');
-
-    const finishButton = new ButtonBuilder()
-        .setCustomId('finish')
-        .setLabel('Finish')
-        .setStyle(1); // Primary style
-
-    const cancelButton = new ButtonBuilder()
-        .setCustomId('cancel')
-        .setLabel('Cancel')
-        .setStyle(2); // Secondary style
-
-    const row = new ActionRowBuilder()
-        .addComponents(finishButton, cancelButton);
-
-    // create a container builder
-    const container = new ContainerBuilder()
-        .addTextDisplayComponents(prompt, instructions)
-        .addActionRowComponents(row);
-
+    const [container, finishButton, cancelButton] = buildReplyMessageContainer(webhook.name, targetMessage);
 
     // send the initial container
     const containerMsg = await dmChannel.send({ components: [container], flags: MessageFlags.IsComponentsV2 })
@@ -287,7 +261,7 @@ async function npcReply(interaction) {
         console.log(`Button collector ended for reason: ${reason}`);
         finishButton.setDisabled(true);
         cancelButton.setDisabled(true);
-        row.setComponents(finishButton, cancelButton);
+        // row.setComponents(finishButton, cancelButton);
         await containerMsg.edit({ components: [container], flags: MessageFlags.IsComponentsV2 });
     });
 
@@ -367,9 +341,45 @@ async function handleMessageCollectorClose(collected, reason, dmChannel) {
  * @param {Snowflake} [messageId] - the ID of the message to reply to, if specified
  * @returns { [Webhook, Channel, Message] } Successful validation returns an object with the webhook, the dm's channel, and the message to reply to, if specified.
  */
-async function validateInputs(interaction, npcId, messageId) {
+// async function validateInputs(interaction, npcId, messageId) {
 
-    const client = interaction.client;
-    const base_channel = interaction.channel;
-    return [ webhook, dmChannel, targetMessage ];
+//     const client = interaction.client;
+//     const base_channel = interaction.channel;
+//     return [ webhook, dmChannel, targetMessage ];
+// }
+
+/**
+ * Creates the container that the bot will use to show the user their collected output.
+ * @param {String} name - The name of the NPC the message/reply will be sent as.
+ * @param {import('discord.js').MessageReference} targetMessage - The message to target as a reply.
+ * @returns {[ContainerBuilder, ButtonBuilder, ButtonBuilder]} - References to the builders used.
+ */
+function buildReplyMessageContainer(name, targetMessage) {
+    const prompt = new TextDisplayBuilder()
+        .setContent(
+            targetMessage ? `## ${name} will reply...` : `## ${name} will send...`,
+        );
+
+    const instructions = new TextDisplayBuilder()
+        .setContent('-# Type messages in this channel to add to the reply');
+
+    const finishButton = new ButtonBuilder()
+        .setCustomId('finish')
+        .setLabel('Finish')
+        .setStyle(1); // Primary style
+
+    const cancelButton = new ButtonBuilder()
+        .setCustomId('cancel')
+        .setLabel('Cancel')
+        .setStyle(2); // Secondary style
+
+    const row = new ActionRowBuilder()
+        .addComponents(finishButton, cancelButton);
+
+    // create a container builder
+    const container = new ContainerBuilder()
+        .addTextDisplayComponents(prompt, instructions)
+        .addActionRowComponents(row);
+
+    return [container, finishButton, cancelButton];
 }
