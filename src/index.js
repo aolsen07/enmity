@@ -77,4 +77,7 @@ mongoose.connection.on('disconnected', () => console.log(chalk.yellow('Database 
 mongoose.connection.on('connected', () => console.log(chalk.green('Database connected.')));
 
 // login using token
-client.login(process.env.BOT_TOKEN);
+client.login(process.env.BOT_TOKEN)
+    .catch(err => {
+        console.log(chalk.red('Error Logging in!:', err.message, `(${err.name})`));
+    });
