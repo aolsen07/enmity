@@ -6,6 +6,12 @@ module.exports = {
         .setName('ping')
         .setDescription('Replies with Pong!'),
     async execute(interaction) {
-        await interaction.reply('Pong!');
+        const ping = interaction.client.ws.ping;
+        const sent = await interaction.reply({ content: `Pong! WebSocket ping: \`${ping}ms\``, withResponse: true });
+        interaction.editReply(`Pong! WebSocket ping: \`${ping}ms\`, This ping: \`${(sent.resource.message.createdTimestamp - interaction.createdTimestamp)}ms\``);
     },
 };
+
+/**
+ * Interaction Callbacks give a reference to the message they created in the chat
+ */
