@@ -25,7 +25,12 @@ module.exports = {
 
 		if (!interaction.isChatInputCommand()) return;
 
-		console.log(`[INFO]: Command triggered: ${interaction.commandName}, User: ${interaction.user.tag}, Channel: ${interaction.channel.name}`);
+		let name = interaction.commandName;
+		if (interaction.commandName === 'npc') {
+			name += ' ' + interaction.options.getSubcommand();
+		}
+
+		console.log(`[INFO]: Command triggered: ${name}, User: ${interaction.user.tag}, Channel: ${interaction.channel.name}`);
 		const command = interaction.client.commands.get(interaction.commandName);
 
 		// check if this is a found command for the system
@@ -67,7 +72,6 @@ module.exports = {
 		setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
 
 		try {
-			// TODO: structure for subcommands?
 			await command.execute(interaction);
 		}
 		catch (error) {
