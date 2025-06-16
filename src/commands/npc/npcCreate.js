@@ -2,6 +2,7 @@
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 
 module.exports = {
+    ignore: true,
     cooldown: 5,
     data: new SlashCommandBuilder()
         .setName('createnpc')

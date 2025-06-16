@@ -42,7 +42,10 @@ for (const folder of commandFolders) {
 
         // set item in collection with key name and module
         // check to ensure properties are defined in export
-        if ('data' in command && 'execute' in command) {
+        if ('ignore' in command) {
+            continue;
+        }
+        else if ('data' in command && 'execute' in command) {
             console.log(`Loading command ${command.data.name}`);
             client.commands.set(command.data.name, command);
         }

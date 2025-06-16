@@ -8,6 +8,7 @@ let messageCollector;
 let buttonCollector;
 
 module.exports = {
+    ignore: true,
     cooldown: 300,
     reason: 'Please finish your current reply before starting a new one.',
     data: new SlashCommandBuilder()
