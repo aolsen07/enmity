@@ -11,18 +11,24 @@ module.exports = {
             const npcImage = interaction.fields.getTextInputValue('npcImage');
             const npcDescription = interaction.fields.getTextInputValue('npcDescription');
 
-            await interaction.reply({ content: `NPC Created: ${npcName} - ${npcImage} - ${npcDescription}`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: `NPC Created: ${npcName} - ${npcImage ? npcImage : 'No image.'} - ${npcDescription ? npcDescription : 'No description.'}`, flags: MessageFlags.Ephemeral });
 
             interaction.channel.createWebhook({
                 name: npcName,
                 avatar: npcImage,
                 reason: `Created by ${interaction.user.tag}`,
             })
-                .then(webhook => {
-                    console.log(`Created webhook ${webhook.id} with name ${webhook.name}`);
-                    webhook.send(`i'm alive!!! my id is ${webhook.id}`);
-                })
-                .catch(console.error);
+            .then(webhook => {
+                console.log(`Created webhook ${webhook.id} with name ${webhook.name}`);
+                // webhook.send(`i'm alive!!! my id is ${webhook.id}`);
+            })
+            .catch(console.error);
+        }
+        else if (interaction.customId.startsWith('npcEdit')) {
+            await interaction.reply({
+                content: 'Received Edit. Too bad this doesn\'t do anything yet',
+                flags: MessageFlags.Ephemeral,
+            });
         }
     },
 };
