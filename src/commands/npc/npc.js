@@ -4,7 +4,7 @@
  * It includes the command registration and execution logic for creating, editing, and deleting NPCs.
  */
 
-const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags, CommandInteraction } = require('discord.js');
 
 
 module.exports = {
@@ -68,6 +68,10 @@ module.exports = {
         //             ),
         // ),
 
+    /**
+     * Handle a general NPC command interaction, and branch it off into subcommands
+     * @param {CommandInteraction} interaction
+     */
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
 
@@ -96,28 +100,34 @@ module.exports = {
         }
         else if (subcommand === 'delete') {
             // Handle the delete subcommand
+            const serverId = interaction.guildId;
+            const server = await Server.findOne({ serverId });
+            if (!server) {
+                return interaction.reply({ content: 'No NPCs have been created in your server.', flags: MessageFlags.Ephemeral });
+            }
+
             const npcId = interaction.options.getString('npcname');
-            await interaction.client.fetchWebhook(npcId)
-                .then(webhook => webhook.delete())
-                .then(() => {
-                    interaction.reply({ content: `NPC with ID ${npcId} has been deleted.`, flags: MessageFlags.Ephemeral });
-                })
-                .catch(error => {
-                    console.error('Error deleting NPC:', error);
-                    if (error.code === 50_035) {
-                        interaction.reply({ content: 'The NPC you want to delete doesn\'t exist, if that helps...\n*Check your input and ensure you\'re selecting the right option', flags: MessageFlags.Ephemeral });
-                    }
-                });
+            const npcToDelete = server.npcs.find(npc => npc.id === npcId);
+
+            if (!npcToDelete) {
+                return interaction.reply({ content: 'Could not find that NPC in your server.', flags: MessageFlags.Ephemeral });
+            }
+
+            const npcName = npcToDelete.name;
+            server.npcs = server.npcs.filter(npc => npc.id !== npcId);
+            await server.save();
+            await interaction.reply({ content: `Successfully deleted NPC: ${npcName}`, flags: MessageFlags.Ephemeral });
         }
     },
     async autocomplete(interaction) {
+        const serverId = interaction.guildId;
         // get webhooks from channel interaction
-        await interaction.channel.fetchWebhooks()
-        .then(webhooks => {
+        await Server.findOne({ serverId })
+        .then(server => {
             const focusedValue = interaction.options.getFocused();
 
             // webhooks is a collection of snowflake -> webhook
-            const filtered = webhooks.filter(webhook => webhook.name.toLowerCase().startsWith(focusedValue.toLowerCase()));
+            const filtered = server.npcs.filter(npc => npc.name.toLowerCase().startsWith(focusedValue.toLowerCase()));
             interaction.respond(
                 filtered.map(webhook => ({ name: webhook.name, value: webhook.id })),
             );
@@ -169,7 +179,7 @@ async function buildNPCModal(NPCWebhook = null) {
     return modal;
 }
 
-// NPC Reply Functionality
+// === NPC Reply Functionality ===
 
 // consts for end states
 const CANCEL_PRESSED = 'cancelled';
@@ -181,6 +191,7 @@ let messageCollector;
 let buttonCollector;
 
 const { ContainerBuilder, TextDisplayBuilder, ButtonBuilder, ComponentType } = require('discord.js');
+const { Server } = require('./npc-schema');
 
 async function npcReply(interaction) {
 
