@@ -1,6 +1,6 @@
 {
   "name": "ayyyyyybot",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "discord bot for myself",
   "main": "src/index.js",
   "scripts": {
@@ -20,5 +20,18 @@
   },
   "devDependencies": {
     "eslint": "^8.57.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aolsen07/AyyyyyyBot.git"
+  },
+  "keywords": [
+    "discord",
+    "npc",
+    "database"
+  ],
+  "bugs": {
+    "url": "https://github.com/aolsen07/AyyyyyyBot/issues"
+  },
+  "homepage": "https://github.com/aolsen07/AyyyyyyBot#readme"
 }
