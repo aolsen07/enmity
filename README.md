@@ -1,20 +1,12 @@
-# My Own Discord Son
+# Enmity Lore Manager
+*positive, active, and typically mutual hatred or ill will*
 
-## Main Features
-- Tech Demo for slash commands, utilizing discord.js
+Bring your TTRPG's universe into your Discord server, and make it your own.
+
+## Key Features
+- NPCs in your server, controlled by you or other game masters.
   
-## Still to develop
-- Economy system with gambling, connection to either MongoDB or other database service
-- Frontend web panel to tweak settings (may be seperate ecosystem)
-  
-Commands are built using the `SlashCommandBuilder` interface.
-
-## Scripts
-- `npm run-script delete-command <command-id>` 
-  Provide a command ID for a slash command to remove it from Discord's API.
-
-- `npm run-script deploy-commands` 
-  Run the `deploy-commands.js` script, which builds and adds all commands in the `commands` directory to the API. This should be done before running the bot. 
-
-- `npm start`
-  Runs the bot.
+## Planned
+- Track fanart, characters, and other media throughout your campaign's lore.
+- Wiki-style outputs for characters.
+- Allow players to manage their own characters, with other spam protections and settings for accountability.
