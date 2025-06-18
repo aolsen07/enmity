@@ -4,7 +4,7 @@
  * It includes the command registration and execution logic for creating, editing, and deleting NPCs.
  */
 
-const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags, CommandInteraction } = require('discord.js');
 
 
 module.exports = {
@@ -68,6 +68,10 @@ module.exports = {
         //             ),
         // ),
 
+    /**
+     * Handle a general NPC command interaction, and branch it off into subcommands
+     * @param {CommandInteraction} interaction
+     */
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
 
@@ -96,28 +100,35 @@ module.exports = {
         }
         else if (subcommand === 'delete') {
             // Handle the delete subcommand
+            const serverId = interaction.guildId;
+            const server = await Server.findOne({ serverId });
+            if (!server) {
+                return interaction.reply({ content: 'No NPCs have been created in your server.', flags: MessageFlags.Ephemeral });
+            }
+
             const npcId = interaction.options.getString('npcname');
-            await interaction.client.fetchWebhook(npcId)
-                .then(webhook => webhook.delete())
-                .then(() => {
-                    interaction.reply({ content: `NPC with ID ${npcId} has been deleted.`, flags: MessageFlags.Ephemeral });
-                })
-                .catch(error => {
-                    console.error('Error deleting NPC:', error);
-                    if (error.code === 50_035) {
-                        interaction.reply({ content: 'The NPC you want to delete doesn\'t exist, if that helps...\n*Check your input and ensure you\'re selecting the right option', flags: MessageFlags.Ephemeral });
-                    }
-                });
+            const npcToDelete = server.npcs.find(npc => npc.id === npcId);
+
+            if (!npcToDelete) {
+                return interaction.reply({ content: 'Could not find that NPC in your server.', flags: MessageFlags.Ephemeral });
+            }
+
+            const npcName = npcToDelete.name;
+            server.npcs = server.npcs.filter(npc => npc.id !== npcId);
+            await server.save();
+            await interaction.reply({ content: `Successfully deleted NPC: ${npcName}`, flags: MessageFlags.Ephemeral });
         }
     },
     async autocomplete(interaction) {
+        const serverId = interaction.guildId;
         // get webhooks from channel interaction
-        await interaction.channel.fetchWebhooks()
-        .then(webhooks => {
+        await Server.findOne({ serverId })
+        .then(server => {
             const focusedValue = interaction.options.getFocused();
 
+            if (!server) return [];
             // webhooks is a collection of snowflake -> webhook
-            const filtered = webhooks.filter(webhook => webhook.name.toLowerCase().startsWith(focusedValue.toLowerCase()));
+            const filtered = server.npcs.filter(npc => npc.name.toLowerCase().startsWith(focusedValue.toLowerCase()));
             interaction.respond(
                 filtered.map(webhook => ({ name: webhook.name, value: webhook.id })),
             );
@@ -169,7 +180,7 @@ async function buildNPCModal(NPCWebhook = null) {
     return modal;
 }
 
-// NPC Reply Functionality
+// === NPC Reply Functionality ===
 
 // consts for end states
 const CANCEL_PRESSED = 'cancelled';
@@ -181,26 +192,54 @@ let messageCollector;
 let buttonCollector;
 
 const { ContainerBuilder, TextDisplayBuilder, ButtonBuilder, ComponentType } = require('discord.js');
+const { Server } = require('./npc-schema');
 
 async function npcReply(interaction) {
-
     const npcId = interaction.options.getString('npcname');
 
-    // Fetch the webhook for the channel, handle bad ID. Could sanitize for bad ID before to save on the API call
-    const webhook = await interaction.client.fetchWebhook(npcId)
-        .catch(err => {
-            interaction.reply({ content: `No webhook found for \`${npcId}\`. Make sure the webhook still exists and use the autocomplete result.`, flags: MessageFlags.Ephemeral });
-            throw new Error(`Error Occurred in fetching webhook: ${err.message}`);
+    // Fetch the NPC from the database
+    const serverId = interaction.guildId;
+    const server = await Server.findOne({ serverId });
+
+    if (!server) {
+        await interaction.reply({
+            content: 'No NPCs have been created in your server.',
+            flags: MessageFlags.Ephemeral,
         });
+        return;
+    }
+
+    const npcData = server.npcs.find(n => n.id === npcId);
+    if (!npcData) {
+        await interaction.reply({
+            content: `Could not find NPC with ID \`${npcId}\`. Please use the autocomplete to select a valid NPC.`,
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    // Get or create webhook for this channel
+    const channel = interaction.channel;
+    const webhook = await findOrCreateNPCWebhook(channel);
+    if (!webhook) {
+        await interaction.reply({
+            content: 'Failed to create webhook. Please make sure I have the "Manage Webhooks" permission.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
 
     // Try to DM the user
     const dmChannel = await interaction.user.createDM()
         .catch(err => {
-            interaction.reply({ content: 'Could not send you a DM! Please check your server privacy settings to allow Direct Messages.', flags: MessageFlags.Ephemeral });
+            interaction.reply({
+                content: 'Could not send you a DM! Please check your server privacy settings to allow Direct Messages.',
+                flags: MessageFlags.Ephemeral,
+            });
             throw new Error(`Could not create DM channel: ${err.message}`);
         });
 
-    const [container, finishButton, cancelButton] = buildReplyMessageContainer(webhook.name);
+    const [container, finishButton, cancelButton] = buildReplyMessageContainer(npcData.name);
 
     // send the initial container
     const containerMsg = await dmChannel.send({ components: [container], flags: MessageFlags.IsComponentsV2 })
@@ -210,7 +249,10 @@ async function npcReply(interaction) {
         });
 
     // send a message in the original channel to notify the user
-    await interaction.reply({ content: `Check your DMs to reply as ${webhook.name}!`, flags: MessageFlags.Ephemeral });
+    await interaction.reply({
+        content: `Check your DMs to reply as ${npcData.name}!`,
+        flags: MessageFlags.Ephemeral,
+    });
 
     // set up collectors for messages and button interactions
     const messageFilter = m => m.author.id === interaction.user.id; // this will block messages from the bot itself
@@ -228,15 +270,17 @@ async function npcReply(interaction) {
 
     // add listeners for the collectors
     messageCollector.on('collect', async (message) => {
-        pushNewMessage(message, container, containerMsg);
+        await addMessageToContainer(message, container, containerMsg);
     });
 
     buttonCollector.on('collect', async (buttonInteraction) => {
-        await handleButtonInteraction(buttonInteraction, webhook);
+        await handleNPCReplyInteraction(buttonInteraction, npcData, webhook);
     });
 
     // notify the user that the collection has ended
-    messageCollector.on('end', async (collected, reason) => { await handleMessageCollectorClose(collected, reason, dmChannel); });
+    messageCollector.on('end', async (collected, reason) => {
+        await handleMessageCollectorClose(collected, reason, dmChannel);
+    });
 
     // visually update the buttons when the collector ends
     buttonCollector.on('end', async (collected, reason) => {
@@ -245,11 +289,15 @@ async function npcReply(interaction) {
         cancelButton.setDisabled(true);
         await containerMsg.edit({ components: [container], flags: MessageFlags.IsComponentsV2 });
     });
-
 }
 
-// npc reply helper functions
-async function pushNewMessage(message, container, containerMsg) {
+/**
+ * Add a message to the reply container
+ * @param {Message} message - The message to add
+ * @param {ContainerBuilder} container - The container to add the message to
+ * @param {Message} containerMsg - The message containing the container
+ */
+async function addMessageToContainer(message, container, containerMsg) {
     console.log(`Collected message: ${message.content}`);
     const newComponent = {
         content: `${message.content}`,
@@ -263,30 +311,68 @@ async function pushNewMessage(message, container, containerMsg) {
     await containerMsg.edit({ components: [container], flags: MessageFlags.IsComponentsV2 });
 }
 
-async function handleButtonInteraction(buttonInteraction, webhook) {
+/**
+ * Find existing NPC webhook or create a new one
+ * @param {TextChannel} channel - The channel to find/create webhook in
+ * @returns {Promise<Webhook|null>} The webhook or null if creation failed
+ */
+async function findOrCreateNPCWebhook(channel) {
+    try {
+        const webhooks = await channel.fetchWebhooks();
+        const webhook = webhooks.find(wh => wh.name === 'NPC System');
+
+        if (!webhook) {
+            // Create a new webhook
+            return await channel.createWebhook({
+                name: 'NPC System',
+                avatar: 'https://i.imgur.com/AfFp7pu.png', // Default Discord avatar or your bot's avatar
+            });
+        }
+
+        return webhook;
+    }
+    catch (error) {
+        console.error('Error managing webhook:', error);
+        return null;
+    }
+}
+
+/**
+ * Handle button interactions for NPC replies
+ * @param {ButtonInteraction} buttonInteraction - The button interaction
+ * @param {*} npcData - The NPC object from the database
+ * @param {Webhook} webhook - The webhook to send the message through
+ */
+async function handleNPCReplyInteraction(buttonInteraction, npcData, webhook) {
     if (buttonInteraction.customId === 'finish') {
-        // send the reply using the webhook
+        // send the reply as the NPC
         if (messages.length === 0) {
             await buttonInteraction.channel.send('You can\'t send an empty reply. Please type a message first.');
             return;
         }
 
         messages.push(`> -# Message sent by <@${buttonInteraction.user.id}>`);
-        await webhook.send({
-            content: messages.join('\n'),
-            allowedMentions: { parse: [] }, // prevent mentions
-            flags: MessageFlags.SuppressEmbeds,
-        })
-        .then(() => {
-            buttonInteraction.reply({ content: 'Reply sent successfully!' });
+        
+        try {
+            await webhook.send({
+                content: messages.join('\n'),
+                username: npcData.name,
+                avatarURL: npcData.image,
+                allowedMentions: { parse: [] },
+            });
+            await buttonInteraction.reply({ content: 'Reply sent successfully!' });
             messageCollector.stop(FINISH_PRESSED);
             buttonCollector.stop(FINISH_PRESSED);
-        })
-        .catch(err => {
+        }
+        catch (err) {
             console.error('Error sending webhook message:', err);
-            buttonInteraction.reply({ content: 'An error occurred, failed to send reply.', flags: MessageFlags.Ephemeral });
-        });
+            await buttonInteraction.reply({
+                content: 'An error occurred, failed to send reply.',
+                flags: MessageFlags.Ephemeral,
+            });
+        }
     }
+    
     else if (buttonInteraction.customId === 'cancel') {
         await buttonInteraction.reply({ content: 'Reply cancelled.' });
         messageCollector.stop(CANCEL_PRESSED);
