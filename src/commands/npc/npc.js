@@ -126,6 +126,7 @@ module.exports = {
         .then(server => {
             const focusedValue = interaction.options.getFocused();
 
+            if (!server) return [];
             // webhooks is a collection of snowflake -> webhook
             const filtered = server.npcs.filter(npc => npc.name.toLowerCase().startsWith(focusedValue.toLowerCase()));
             interaction.respond(
