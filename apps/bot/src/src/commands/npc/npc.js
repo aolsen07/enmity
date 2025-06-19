@@ -4,7 +4,7 @@
  * It includes the command registration and execution logic for creating, editing, and deleting NPCs.
  */
 
-const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags, CommandInteraction } = require('discord.js');
+const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 
 
 module.exports = {
@@ -351,8 +351,9 @@ async function handleNPCReplyInteraction(buttonInteraction, npcData, webhook) {
             return;
         }
 
+        // for preventing anonymous spam, this output can be put behind a setting
         messages.push(`> -# Message sent by <@${buttonInteraction.user.id}>`);
-        
+
         try {
             await webhook.send({
                 content: messages.join('\n'),
@@ -372,7 +373,7 @@ async function handleNPCReplyInteraction(buttonInteraction, npcData, webhook) {
             });
         }
     }
-    
+
     else if (buttonInteraction.customId === 'cancel') {
         await buttonInteraction.reply({ content: 'Reply cancelled.' });
         messageCollector.stop(CANCEL_PRESSED);

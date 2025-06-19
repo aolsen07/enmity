@@ -1,7 +1,7 @@
 {
-  "name": "ayyyyyybot",
-  "version": "0.1.0",
-  "description": "discord bot for myself",
+  "name": "enmity",
+  "version": "0.1.1",
+  "description": "A Discord lore manager app",
   "main": "src/index.js",
   "scripts": {
     "deploy-commands": "node src/scripts/deploy-commands.js",
@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aolsen07/AyyyyyyBot.git"
+    "url": "git+https://github.com/aolsen07/enmity.git"
   },
   "keywords": [
     "discord",
@@ -31,7 +31,7 @@
     "database"
   ],
   "bugs": {
-    "url": "https://github.com/aolsen07/AyyyyyyBot/issues"
+    "url": "https://github.com/aolsen07/enmity/issues"
   },
-  "homepage": "https://github.com/aolsen07/AyyyyyyBot#readme"
+  "homepage": "https://github.com/aolsen07/enmity#readme"
 }
