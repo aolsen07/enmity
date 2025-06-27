@@ -1,11 +1,7 @@
-const { SlashCommandBuilder, MessageFlags, ContainerBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, TextDisplayBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags, ContainerBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, TextDisplayBuilder, Webhook } = require('discord.js');
 
 const CANCEL_PRESSED = 'cancelled';
 const FINISH_PRESSED = 'finished';
-
-const messages = [];
-let messageCollector;
-let buttonCollector;
 
 module.exports = {
     ignore: true,
@@ -31,6 +27,8 @@ module.exports = {
         const base_channel = interaction.channel;
 
         const [webhook, dmChannel, targetMessage] = await validateInputs(interaction, npcId, messageId, base_channel);
+
+        const messages = [];
 
         const prompt = new TextDisplayBuilder()
             .setContent(
@@ -71,28 +69,28 @@ module.exports = {
 
         // set up collectors for messages and button interactions
         const messageFilter = m => m.author.id === interaction.user.id; // this will block messages from the bot itself
-        messageCollector = dmChannel.createMessageCollector({
+        const messageCollector = dmChannel.createMessageCollector({
             filter: messageFilter,
             idle: 120_000,
             time: 300_000,
         });
 
-        buttonCollector = containerMsg.createMessageComponentCollector({
+        const buttonCollector = containerMsg.createMessageComponentCollector({
             componentType: ComponentType.Button,
             idle: 180_000,
             time: 300_000,
         });
 
         messageCollector.on('collect', async (message) => {
-            pushNewMessage(message, container, containerMsg);
+            pushNewMessage(message, messages, container, containerMsg);
         });
 
         buttonCollector.on('collect', async (buttonInteraction) => {
-            await handleButtonInteraction(buttonInteraction, webhook, messageCollector);
+            await handleButtonInteraction(buttonInteraction, messages, webhook, messageCollector, messages);
         });
 
         // notify the user that the collection has ended
-        messageCollector.on('end', async (collected, reason) => { await handleMessageCollectorClose(collected, reason, dmChannel); });
+        messageCollector.on('end', async (collected, reason) => { await handleMessageCollectorClose(collected, reason, dmChannel, buttonCollector); });
 
         // visually update the buttons when the collector ends
         buttonCollector.on('end', async (collected, reason) => {
@@ -122,7 +120,7 @@ module.exports = {
     },
 };
 
-async function pushNewMessage(message, container, containerMsg) {
+async function pushNewMessage(message, messages, container, containerMsg) {
     const newComponent = {
         content: `${message.content}`,
         type: ComponentType.TextDisplay,
@@ -137,7 +135,16 @@ async function pushNewMessage(message, container, containerMsg) {
     console.log(`Collected message: ${message.content}`);
 }
 
-async function handleButtonInteraction(buttonInteraction, webhook) {
+/**
+ * 
+ * @param {Interaction} buttonInteraction 
+ * @param {String[]} messages
+ * @param {Webhook} webhook 
+ * @param {MessageCollector} messageCollector 
+ * @param {MessageComponentCollector} buttonCollector 
+ * @returns void
+ */
+async function handleButtonInteraction(buttonInteraction, messages, webhook, messageCollector, buttonCollector) {
     if (buttonInteraction.customId === 'finish') {
         // send the reply using the webhook
         if (messages.length === 0) {
@@ -170,11 +177,12 @@ async function handleButtonInteraction(buttonInteraction, webhook) {
 /**
  * Contains the logic for notifying the user when the message collector shuts off. The output changes depending on whether any messages were collected.
  * @param {ReadonlyCollection<Snowflake, Message>} collected - A collection of messages from the user, given by the collector on the end event.
+ * @param {*} buttonCollector
  * @param {DMChannel} dmChannel - The DM channel where the user is sending messages.
  * @param {MessageComponentCollector} buttonCollector - A reference to the container's button collector, so that it can be stopped if no messages were collected.
  * @returns {void} - This function does not return anything, but it sends a message to the user in the DM channel.
  */
-async function handleMessageCollectorClose(collected, reason, dmChannel) {
+async function handleMessageCollectorClose(collected, buttonCollector, reason, dmChannel) {
     if (reason === FINISH_PRESSED || reason === CANCEL_PRESSED) {
         console.log(`Message collector ended for reason: ${reason}`);
     }
