@@ -2,12 +2,12 @@ name: Deploy to Droplet
 on: [push]
 jobs:
   build:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Run deploy script via SSH
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.ENMITY_SSH_KEY }}
-        script: ./deploy.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run deploy script via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.ENMITY_SSH_KEY }}
+          script: ./deploy.sh
