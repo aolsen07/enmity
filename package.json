@@ -1,0 +1,29 @@
+{
+  "name": "enmity-monorepo",
+  "version": "1.0.0",
+  "description": "*positive, active, and typically mutual hatred or ill will*",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "devDependencies": {
+    "turbo": "^1.10.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aolsen07/enmity.git"
+  },
+  "author": "Alexander Olsen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aolsen07/enmity/issues"
+  },
+  "homepage": "https://github.com/aolsen07/enmity#readme"
+}
