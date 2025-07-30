@@ -20,7 +20,7 @@ Bring your TTRPG's universe into your Discord server, and make it your own.
 - `/character delete` - Delete a character from this server. 
 - `/character import` - Copy a character of your own into this server. (Import & sync?)
 
-**Security** ``
+**Security**
 - `/settings compose role` - Set the role that can send messages with compose.
 - `/settings compose quest` - Set the role that can use to create quests.
 - `/settings game_master_role` - Set the role that interacts with the bot, equivalent to a moderator for the bot. 

@@ -1,0 +1,16 @@
+{
+  "name": "enmity",
+  "version": "0.2.0",
+  "description": "*positive, active, and typically mutual hatred or ill will*",
+  "main": "apps/src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alexander Olsen",
+  "license": "ISC",
+  "packageManager": "npm@10.2.3",
+  "devDependencies": {
+    "jest": "^30.0.5",
+    "turbo": "^2.5.5"
+  }
+}
