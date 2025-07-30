@@ -2,6 +2,7 @@
   "name": "enmity",
   "version": "0.2.0",
   "description": "*positive, active, and typically mutual hatred or ill will*",
+  "workspaces": ["./apps/*"],
   "main": "apps/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,5 +13,6 @@
   "devDependencies": {
     "jest": "^30.0.5",
     "turbo": "^2.5.5"
-  }
+  },
+  "private": true
 }
