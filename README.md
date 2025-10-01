@@ -1,5 +1,5 @@
 # Enmity Lore Manager
-*positive, active, and typically mutual hatred or ill will*
+> *positive, active, and typically mutual hatred or ill will*
 
 Bring your TTRPG's universe into your Discord server, and make it your own.
 
