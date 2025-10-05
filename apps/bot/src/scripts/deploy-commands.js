@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const commands = [];
 const privateCommands = [];
+const ignored = [];
 
 const foldersPath = path.join(__dirname, '../commands');
 const commandFolders = fs.readdirSync(foldersPath);
@@ -28,7 +29,7 @@ for (const folder of commandFolders) {
             console.log(`|\t|─ ${file}`);
         }
         else {
-            console.log(`|\t|─ !! ${file}!! missing "data" or "execute" property`);
+            ignored.push(file);
         }
     }
 
@@ -53,8 +54,8 @@ for (const folder of commandFolders) {
 }
 
 
-// idk what this notation is... i think it's making an unnamed async function, then calling it
-
+// making an unnamed async function, then calling it
+let success = false;
 // deploy guild commands to the server's API
 (async () => {
     try {
@@ -76,8 +77,10 @@ for (const folder of commandFolders) {
             Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.TEST_GUILD_ID),
             { body: privateCommands },
         )
-        .then((privateData) =>
-            console.log(`SUCCESS - Reloaded ${privateData.length} private commands!`),
+        .then((privateData) => {
+                console.log(`SUCCESS - Reloaded ${privateData.length} private commands!`);
+                success = true;
+            },
         )
         .catch(err => {
             console.log('An error occurred!!!', err);
@@ -89,3 +92,8 @@ for (const folder of commandFolders) {
         console.error(error);
     }
 })();
+
+if (success) {
+    console.log('The following files were ignored:');
+    ignored.forEach(i => console.log(i));
+}
