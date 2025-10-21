@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-console.log(chalk.blue('Initializing AyyyyyyBot...'));
+console.log(chalk.blue('Gathering Enmity...'));
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -12,10 +12,10 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages],
     presence: {
         activities: [{
-            name: 'League of Legends',
+            name: 'Deadlock',
             type: 0,
         }],
-        status: 'online',
+        status: 'away',
     },
 });
 
@@ -29,6 +29,8 @@ mongoose.connect(process.env.MONGO_URI)
 
 // load commands
 console.log('Reviewing commands...\n');
+
+// this should always mimic the file structure!
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
@@ -55,7 +57,6 @@ for (const folder of commandFolders) {
     }
 }
 
-// should files be labeled as command- and event-?
 // load event listener files
 console.log('Tuning into event listeners...');
 const eventsPath = path.join(__dirname, 'events');
@@ -75,6 +76,7 @@ for (const file of eventFiles) {
 	}
 }
 
+// set up listeners for the database 
 mongoose.connection.on('error', err => console.error(chalk.red('Database connection error:', err)));
 mongoose.connection.on('disconnected', () => console.log(chalk.yellow('Database disconnected.')));
 mongoose.connection.on('connected', () => console.log(chalk.green('Database connected.')));
