@@ -2,12 +2,15 @@
   "name": "enmity",
   "version": "0.1.1",
   "description": "A Discord lore manager app",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "deploy-commands": "node src/scripts/deploy-commands.js",
-    "delete-command": "node src/scripts/delete-commands.js",
-    "view-commands": "node src/scripts/view-commands.js",
-    "start": "node src/index.js",
+    "deploy-commands": "node dist/scripts/deploy-commands.js",
+    "delete-command": "node dist/scripts/delete-commands.js",
+    "view-commands": "node dist/scripts/view-commands.js",
+    "start": "node dist/index.js",
+    "dev": "node src/index.js",
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -w -p tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Alexander Olsen",
@@ -19,7 +22,13 @@
     "mongoose": "^8.15.1"
   },
   "devDependencies": {
-    "eslint": "^8.57.0"
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.1",
+    "@types/node": "^20.5.1",
+    "ts-jest": "^29.1.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.0"
   },
   "repository": {
     "type": "git",

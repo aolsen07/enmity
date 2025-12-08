@@ -1,6 +1,13 @@
+# Node.js
 node_modules
+
+# Local configs
 *.env*
+
+# Docker related files
 *Docker*
 dockerfile 
 compose*
+
+# Turbo cache
 .turbo
